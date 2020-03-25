@@ -27,6 +27,10 @@ public interface ESTemplate {
      */
     void update(ESMapping mapping, Object pkVal, Map<String, Object> esFieldData);
 
+    default void updateByJoinedId(String index, String joinedKey, Object joinedId, Map<String, Object> esFieldData) throws Exception{
+
+    }
+
     /**
      * update by query
      *

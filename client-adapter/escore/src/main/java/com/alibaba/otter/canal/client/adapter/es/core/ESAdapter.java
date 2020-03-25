@@ -76,7 +76,7 @@ public abstract class ESAdapter implements OuterAdapter {
                 addSyncConfigToCache(configName, config);
             }
 
-            esSyncService = new ESSyncService(esTemplate);
+            esSyncService = new ESSyncService(esTemplate, this);
 
             esConfigMonitor = new ESConfigMonitor();
             esConfigMonitor.init(this, envProperties);

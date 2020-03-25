@@ -55,6 +55,18 @@
 		<appender-ref ref="CANAL-ROOT" />
 	</logger>
 
+
+	<logger name="org.elasticsearch" additivity="false">
+		<level value="TRACE" />
+		<appender-ref ref="STDOUT"/>
+		<appender-ref ref="CANAL-ROOT" />
+	</logger>
+<!--	<logger name="org.elasticsearch.client.sniffer" additivity="false">-->
+<!--		<level value="TRACE" />-->
+<!--		<appender-ref ref="STDOUT"/>-->
+<!--		<appender-ref ref="CANAL-ROOT" />-->
+<!--	</logger>-->
+
 	<root level="INFO">
 		<appender-ref ref="STDOUT"/>
 		<appender-ref ref="CANAL-ROOT" />

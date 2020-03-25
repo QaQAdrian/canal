@@ -1,11 +1,8 @@
 package com.alibaba.otter.canal.client.adapter.es.core.config;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
+
+import java.util.*;
 
 /**
  * ES 映射配置
@@ -15,30 +12,38 @@ import com.alibaba.otter.canal.client.adapter.support.AdapterConfig;
  */
 public class ESSyncConfig implements AdapterConfig {
 
-    private String    dataSourceKey;    // 数据源key
+    private String dataSourceKey;    // 数据源key
 
-    private String    outerAdapterKey;  // adapter key
+    private String outerAdapterKey;  // adapter key
 
-    private String    groupId;          // group id
+    private String groupId;          // group id
 
-    private String    destination;      // canal destination
+    private String destination;      // canal destination
 
-    private ESMapping esMapping;
+    private JoinedESMapping esMapping;
 
-    private String    esVersion = "es6";
+//    private JoinedESMapping joinedESMapping;
+
+    private String esVersion = "es6";
 
     public void validate() {
-        if (esMapping._index == null) {
-            throw new NullPointerException("esMapping._index");
-        }
-        if ("es6".equals(esVersion) && esMapping._type == null) {
+        if ("es6".equals(esVersion) && esMapping.get_type() == null) {
             throw new NullPointerException("esMapping._type");
         }
-        if (esMapping._id == null && esMapping.getPk() == null) {
-            throw new NullPointerException("esMapping._id or esMapping.pk");
-        }
-        if (esMapping.sql == null) {
-            throw new NullPointerException("esMapping.sql");
+        if (esMapping.isJoined()) {
+            if (esMapping.getJoinField() == null || esMapping.get_id() == null || esMapping.getJoinFile() == null) {
+                throw new NullPointerException("esMapping.joinField, id or joinFile");
+            }
+        } else {
+            if (esMapping.get_index() == null) {
+                throw new NullPointerException("esMapping._index");
+            }
+            if (esMapping.get_id() == null && esMapping.getPk() == null) {
+                throw new NullPointerException("esMapping._id or esMapping.pk");
+            }
+            if (esMapping.getSql() == null) {
+                throw new NullPointerException("esMapping.sql");
+            }
         }
     }
 
@@ -74,15 +79,15 @@ public class ESSyncConfig implements AdapterConfig {
         this.destination = destination;
     }
 
-    public ESMapping getEsMapping() {
+    public JoinedESMapping getEsMapping() {
         return esMapping;
     }
 
-    public void setEsMapping(ESMapping esMapping) {
+    public void setEsMapping(JoinedESMapping esMapping) {
         this.esMapping = esMapping;
     }
 
-    public ESMapping getMapping() {
+    public JoinedESMapping getMapping() {
         return esMapping;
     }
 
@@ -94,25 +99,81 @@ public class ESSyncConfig implements AdapterConfig {
         this.esVersion = esVersion;
     }
 
+    public static class JoinedESMapping extends ESMapping {
+        //        private String joinIndex;
+        private String joinField;
+        private String joinFile;
+
+        private Map<String, String> alias;
+
+        // k-> column name, v-> alias name
+        public Map<String, String> getAlias() {
+            return alias;
+        }
+
+        public void setAlias(Map<String, String> alias) {
+            this.alias = alias;
+        }
+
+        public synchronized void setSchemaItem(SchemaItem schemaItem) {
+            super.schemaItem = schemaItem;
+            alias = new HashMap<>();
+            Optional.ofNullable(schemaItem)
+                    .map(SchemaItem::getSelectFields)
+                    .map(Map::entrySet)
+                    .ifPresent(entries -> {
+                        for (Map.Entry<String, SchemaItem.FieldItem> item : entries) {
+                            String key = item.getKey();
+                            if (key.equals(this.get_id())) {
+                                continue;
+                            }
+                            Optional.ofNullable(item.getValue().getColumn())
+                                    .ifPresent(columnItem -> alias.put(columnItem.getColumnName(), key));
+                        }
+                    });
+
+        }
+
+        public String getJoinFile() {
+            return joinFile;
+        }
+
+        public void setJoinFile(String joinFile) {
+            this.joinFile = joinFile;
+        }
+
+        public boolean isJoined() {
+            return joinField != null;
+        }
+
+        public String getJoinField() {
+            return joinField;
+        }
+
+        public void setJoinField(String joinField) {
+            this.joinField = joinField;
+        }
+    }
+
     public static class ESMapping implements AdapterMapping {
 
-        private String                       _index;
-        private String                       _type;
-        private String                       _id;
-        private boolean                      upsert          = false;
-        private String                       pk;
-        private Map<String, RelationMapping> relations       = new LinkedHashMap<>();
-        private String                       sql;
+        private String _index;
+        private String _type;
+        private String _id;
+        private boolean upsert = false;
+        private String pk;
+        private Map<String, RelationMapping> relations = new LinkedHashMap<>();
+        private String sql;
         // 对象字段, 例: objFields:
         // - _labels: array:;
-        private Map<String, String>          objFields       = new LinkedHashMap<>();
-        private List<String>                 skips           = new ArrayList<>();
-        private int                          commitBatch     = 1000;
-        private String                       etlCondition;
-        private boolean                      syncByTimestamp = false;                // 是否按时间戳定时同步
-        private Long                         syncInterval;                           // 同步时间间隔
+        private Map<String, String> objFields = new LinkedHashMap<>();
+        private List<String> skips = new ArrayList<>();
+        private int commitBatch = 1000;
+        private String etlCondition;
+        private boolean syncByTimestamp = false;                // 是否按时间戳定时同步
+        private Long syncInterval;                           // 同步时间间隔
 
-        private SchemaItem                   schemaItem;                             // sql解析结果模型
+        private SchemaItem schemaItem;                             // sql解析结果模型
 
         public String get_index() {
             return _index;

@@ -7,11 +7,7 @@ spring:
     default-property-inclusion: non_null
 
 canal.conf:
-  mode: tcp # kafka rocketMQ
-  canalServerHost: 127.0.0.1:11111
-#  zookeeperHosts: slave1:2181
-#  mqServers: 127.0.0.1:9092 #or rocketmq
-#  flatMessage: true
+  mode: tcp
   batchSize: 500
   syncBatchSize: 1000
   retries: 0
@@ -21,49 +17,20 @@ canal.conf:
   username:
   password:
   vhost:
-#  srcDataSources:
-#    defaultDS:
-#      url: jdbc:mysql://127.0.0.1:3306/mytest?useUnicode=true
-#      username: root
-#      password: 121212
+  canalServerHost: localhost:11111
+  srcDataSources:
+    defaultDS:
+      url: jdbc:mysql://localhost:3306/schema?useUnicode=true
+      username: admin
+      password: password
   canalAdapters:
-  - instance: example # canal instance Name or mq topic name
-    groups:
-    - groupId: g1
-      outerAdapters:
-      - name: logger
-#      - name: rdb
-#        key: mysql1
-#        properties:
-#          jdbc.driverClassName: com.mysql.jdbc.Driver
-#          jdbc.url: jdbc:mysql://127.0.0.1:3306/mytest2?useUnicode=true
-#          jdbc.username: root
-#          jdbc.password: 121212
-#      - name: rdb
-#        key: oracle1
-#        properties:
-#          jdbc.driverClassName: oracle.jdbc.OracleDriver
-#          jdbc.url: jdbc:oracle:thin:@localhost:49161:XE
-#          jdbc.username: mytest
-#          jdbc.password: m121212
-#      - name: rdb
-#        key: postgres1
-#        properties:
-#          jdbc.driverClassName: org.postgresql.Driver
-#          jdbc.url: jdbc:postgresql://localhost:5432/postgres
-#          jdbc.username: postgres
-#          jdbc.password: 121212
-#          threads: 1
-#          commitSize: 3000
-#      - name: hbase
-#        properties:
-#          hbase.zookeeper.quorum: 127.0.0.1
-#          hbase.zookeeper.property.clientPort: 2181
-#          zookeeper.znode.parent: /hbase
-#      - name: es
-#        hosts: 127.0.0.1:9300 # 127.0.0.1:9200 for rest mode
-#        properties:
-#          mode: transport # or rest
-#          # security.auth: test:123456 #  only used for rest mode
-#          cluster.name: elasticsearch
-
+    - instance: example
+      groups:
+        - groupId: g1
+          outerAdapters:
+            - name: es7
+              hosts: ${KAE_ES_HOST:localhost:9200}
+              properties:
+                mode: rest
+#                security.auth:  #  only used for rest mode
+                cluster.name: elasticsearch

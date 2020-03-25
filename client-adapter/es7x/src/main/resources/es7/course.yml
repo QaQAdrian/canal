@@ -1,0 +1,18 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+esVersion: es7
+esMapping:
+  _index: course
+  upsert: true
+  _id: id
+  sql: "SELECT
+      	a.id AS id,
+      	a.title AS title,
+      	b.name AS teacher_name,
+      	b.id AS teacher_id
+      FROM
+      	course a
+      LEFT JOIN teacher b ON a.teacher=b.id"
+  etlCondition: ""
+  commitBatch: 1

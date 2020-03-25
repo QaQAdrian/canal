@@ -1,0 +1,17 @@
+dataSourceKey: defaultDS
+destination: example
+groupId: g1
+esVersion: es7
+esMapping:
+  _id: id # 本表ID
+  joinFile: course.yml # 关联的主表配置文件
+  joinField: teacher_id # 主表中关联的字段
+  sql: "SELECT
+        a.id AS id,
+        a.name AS teacher_name
+      FROM
+      	teacher a
+      	"
+#  数据库字段 as 主表查询结果的字段
+  etlCondition: ""
+  commitBatch: 1
